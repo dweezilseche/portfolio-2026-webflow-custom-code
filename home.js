@@ -3,13 +3,10 @@ function initLoader() {
 
     gsap.registerPlugin(CustomEase);
 
-    console.log("home.js loaded tesssst");
-
     const loader = document.querySelector(".loader");
     const loaderNumber = document.querySelector(".loader_number");
-    const loaderProgress = document.querySelector(".loader_progress");
 
-    if (!loader || !loaderNumber || !loaderProgress) return;
+    if (!loader || !loaderNumber) return;
 
     const customEase = "M0,0 C0.19,0.92 0.75,0.33 1,1";
     const counter = { value: 0 };
@@ -41,16 +38,7 @@ function initLoader() {
       duration: loaderDuration,
       ease: CustomEase.create("custom", customEase),
     });
-  
-    tl.to(
-      loaderProgress,
-      {
-        width: "100%",
-        duration: loaderDuration,
-        ease: CustomEase.create("custom", customEase),
-      },
-      0
-    );
+
 }
   
 function initMoodButton() {
@@ -85,26 +73,73 @@ button.addEventListener("click", () => {
 function initDescriptionBlocks() {
 if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof SplitText !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger, SplitText);
+} else {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
-gsap.utils.toArray(".mon-bloc").forEach((bloc) => {
-    const titre = bloc.querySelector(".titre");
-    const image = bloc.querySelector(".image");
-    const texte = bloc.querySelector(".texte");
+gsap.utils.toArray(".description-first-project").forEach((bloc) => {
+    const headline = bloc.querySelector(".headline-project-description");
+    const title = bloc.querySelector(".ltp-1");
+    const description = bloc.querySelector(".home-description-project");
 
-    if (!titre || !image || !texte) return;
+    if (!headline || !title || !description) return;
 
-    const tl = gsap.timeline({
-    scrollTrigger: {
-        trigger: bloc,
-        start: "top 80%",
-    },
+    const tl = gsap.timeline({ paused: true });
+
+    if (typeof SplitText !== "undefined") {
+    const splitHeadline = SplitText.create(headline, { type: "lines", mask: "lines" });
+    const splitTitle = SplitText.create(title, { type: "words", mask: "words" });
+    const splitDescription = SplitText.create(description, { type: "lines", mask: "lines" });
+
+    tl.from(splitHeadline.lines, {
+        x: -32,
+        opacity: 0,
+        duration: 0.55,
+        stagger: 0.1,
+        ease: "power2.out",
+        immediateRender: false,
+    })
+    .from(
+        splitTitle.words,
+        {
+        opacity: 0,
+        duration: 0.45,
+        stagger: 0.05,
+        ease: "power2.out",
+        immediateRender: false,
+        },
+        "+=0.2"
+    )
+    .from(
+        splitDescription.lines,
+        {
+        y: 20,
+        opacity: 0,
+        duration: 0.5,
+        stagger: 0.08,
+        immediateRender: false,
+        },
+        "-=0.2"
+    );
+    } else {
+    tl.from(headline, { y: 30, opacity: 0, duration: 0.5, immediateRender: false })
+    .from(title, { opacity: 0, duration: 0.5, immediateRender: false }, "+=0.2")
+    .from(description, { y: 20, opacity: 0, duration: 0.5, immediateRender: false }, "+=0.2");
+    }
+
+    ScrollTrigger.create({
+    trigger: bloc,
+    start: "top 65%",
+    once: true,
+    markers: true,
+    onEnter: () => tl.play(0),
     });
-
-    tl.from(titre, { y: 30, opacity: 0, duration: 0.5 })
-    .from(image, { scale: 0.9, opacity: 0, duration: 0.5 }, "-=0.2")
-    .from(texte, { y: 20, opacity: 0, duration: 0.5 }, "-=0.2");
 });
+
+// SplitText modifies the DOM structure, so we refresh trigger positions once.
+ScrollTrigger.refresh();
 }
   
 function initHome() {

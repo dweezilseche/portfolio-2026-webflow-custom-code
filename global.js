@@ -1,5 +1,3 @@
-console.log("global.js loaded");
-
 function initLenis() {
     if (typeof Lenis === "undefined") return;
   
@@ -7,6 +5,10 @@ function initLenis() {
       duration: 1.3,
       easing: (t) => 1 - Math.pow(1 - t, 4),
     });
+
+    if (typeof ScrollTrigger !== "undefined") {
+      lenis.on("scroll", ScrollTrigger.update);
+    }
   
     function raf(time) {
       lenis.raf(time);
