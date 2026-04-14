@@ -2,13 +2,15 @@ console.log("home.js loaded");
 
 function initLoader() {
     if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
-  
+
+    gsap.registerPlugin(CustomEase);
+
     const loader = document.querySelector(".loader");
     const loaderNumber = document.querySelector(".loader_number");
     const loaderProgress = document.querySelector(".loader_progress");
-  
+
     if (!loader || !loaderNumber || !loaderProgress) return;
-  
+
     const customEase = "M0,0 C0.19,0.92 0.75,0.33 1,1";
     const counter = { value: 0 };
     const loaderDuration = 4.7;
@@ -105,7 +107,7 @@ gsap.utils.toArray(".mon-bloc").forEach((bloc) => {
 });
 }
   
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
 initLoader();
 initMoodButton();
 initDescriptionBlocks();
