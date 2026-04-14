@@ -1,9 +1,3 @@
-console.log("home.js file loaded");
-
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOMContentLoaded caught in home.js");
-});
-
 function initLoader() {
     if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
 
@@ -111,8 +105,14 @@ gsap.utils.toArray(".mon-bloc").forEach((bloc) => {
 });
 }
   
-window.addEventListener("load", () => {
-initLoader();
-initMoodButton();
-initDescriptionBlocks();
-});
+function initHome() {
+    initLoader();
+    initMoodButton();
+    initDescriptionBlocks();
+  }
+  
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initHome);
+  } else {
+    initHome();
+  }
