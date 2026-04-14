@@ -93,19 +93,8 @@ document.addEventListener("click", () => {
     }
 });
 }
-
-function initHomeScript() {
-const page = document.querySelector("[data-page]");
-if (!page || page.dataset.page !== "home") return;
-
-const script = document.createElement("script");
-script.src = "https://cdn.jsdelivr.net/gh/dweezilseche/portfolio-2026-webflow-custom-code@main/home.js";
-script.defer = true;
-document.body.appendChild(script);
-}
   
 document.addEventListener("DOMContentLoaded", () => {
 initLenis();
 initCursor();
-initHomeScript();
 });

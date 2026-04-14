@@ -3,6 +3,8 @@ function initLoader() {
 
     gsap.registerPlugin(CustomEase);
 
+    console.log("home.js loaded tesssst");
+
     const loader = document.querySelector(".loader");
     const loaderNumber = document.querySelector(".loader_number");
     const loaderProgress = document.querySelector(".loader_progress");
