@@ -16,57 +16,6 @@ function initLenis() {
     requestAnimationFrame(raf);
 }
 
-function initLoader() {
-    if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
-  
-    const loader = document.querySelector(".loader");
-    const loaderNumber = document.querySelector(".loader_number");
-    const loaderProgress = document.querySelector(".loader_progress");
-  
-    if (!loader || !loaderNumber || !loaderProgress) return;
-  
-    const customEase = "M0,0 C0.19,0.92 0.75,0.33 1,1";
-    const counter = { value: 0 };
-    const loaderDuration = 4.7;
-  
-    function updateLoaderText() {
-      const progress = Math.round(counter.value);
-      loaderNumber.textContent = `${progress}%`;
-    }
-  
-    function endLoaderAnimation() {
-      gsap.to(loader, {
-        opacity: 0,
-        duration: 0.6,
-        pointerEvents: "none",
-        onComplete: () => {
-          loader.style.display = "none";
-        }
-      });
-    }
-  
-    const tl = gsap.timeline({
-      onComplete: endLoaderAnimation,
-    });
-  
-    tl.to(counter, {
-      value: 100,
-      onUpdate: updateLoaderText,
-      duration: loaderDuration,
-      ease: CustomEase.create("custom", customEase),
-    });
-  
-    tl.to(
-      loaderProgress,
-      {
-        width: "100%",
-        duration: loaderDuration,
-        ease: CustomEase.create("custom", customEase),
-      },
-      0
-    );
-}
-
 function initCursor() {
 const cursor = document.getElementById("custom-cursor");
 const leftPupil = document.getElementById("left-pupil");
@@ -157,7 +106,6 @@ document.body.appendChild(script);
   
 document.addEventListener("DOMContentLoaded", () => {
 initLenis();
-initLoader();
 initCursor();
 initHomeScript();
 });
