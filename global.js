@@ -1,5 +1,4 @@
 console.log("global.js loaded");
-alert("global.js loaded");
 
 function initLenis() {
     if (typeof Lenis === "undefined") return;
@@ -95,39 +94,6 @@ function initLenis() {
     });
   }
   
-  function initPageTransitions() {
-    const links = document.querySelectorAll("a[href]");
-  
-    links.forEach((link) => {
-      const href = link.getAttribute("href");
-      const isInternal = link.host === window.location.host;
-      const isAnchor = href.startsWith("#");
-      const isMailto = href.startsWith("mailto:");
-      const isTel = href.startsWith("tel:");
-      const isBlank = link.target === "_blank";
-      const isDownload = link.hasAttribute("download");
-  
-      if (!isInternal || isAnchor || isMailto || isTel || isBlank || isDownload) {
-        return;
-      }
-  
-      link.addEventListener("click", (e) => {
-        e.preventDefault();
-  
-        const transitionTrigger = document.querySelector(".page-transition");
-        const destination = link.href;
-  
-        if (transitionTrigger) {
-          transitionTrigger.click();
-        }
-  
-        setTimeout(() => {
-          window.location.href = destination;
-        }, 1000);
-      });
-    });
-  }
-  
   function initHomeScript() {
     const page = document.querySelector("[data-page]");
     if (!page || page.dataset.page !== "home") return;
@@ -141,6 +107,5 @@ function initLenis() {
   document.addEventListener("DOMContentLoaded", () => {
     initLenis();
     initCursor();
-    initPageTransitions();
     initHomeScript();
   });
