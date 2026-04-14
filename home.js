@@ -1,4 +1,8 @@
-console.log("home.js loaded");
+console.log("home.js file loaded");
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOMContentLoaded caught in home.js");
+});
 
 function initLoader() {
     if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
