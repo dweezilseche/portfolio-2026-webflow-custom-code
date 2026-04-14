@@ -1,3 +1,6 @@
+console.log("global.js loaded");
+alert("global.js loaded");
+
 function initLenis() {
     if (typeof Lenis === "undefined") return;
   
