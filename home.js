@@ -1,3 +1,5 @@
+console.log("home.js loaded");
+
 function initLoader() {
     if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
   
