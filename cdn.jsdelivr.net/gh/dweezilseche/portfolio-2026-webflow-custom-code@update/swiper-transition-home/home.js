@@ -100,23 +100,6 @@ function loadExternalAsset(tagName, attributes) {
   });
 }
 
-function injectProjectsSwiperPaginationStyles() {
-  const styleId = "projects-swiper-pagination-overrides";
-  if (document.getElementById(styleId)) return;
-
-  const style = document.createElement("style");
-  style.id = styleId;
-  style.textContent = `
-    [data-projects-swiper] .swiper-pagination {
-      position: static;
-      margin-top: auto!important;
-      text-align: left;
-      font-style: normal;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 function initSwiperLibrary() {
   if (typeof Swiper !== "undefined") return Promise.resolve();
 
@@ -215,21 +198,6 @@ function lockProjectsCarouselHeight(swiper) {
   if (maxHeight > 0) {
     wrapper.style.height = `${maxHeight}px`;
   }
-}
-
-function formatProjectsPaginationNumber(value) {
-  return String(value).padStart(2, "0");
-}
-
-function placeProjectsPaginationInActiveDescription(swiper) {
-  const paginationEl = swiper?.pagination?.el;
-  const activeSlide = swiper?.slides?.[swiper.activeIndex];
-  if (!paginationEl || !activeSlide) return;
-
-  const activeDescription = activeSlide.querySelector(".description-first-project");
-  if (!activeDescription || activeDescription.contains(paginationEl)) return;
-
-  activeDescription.appendChild(paginationEl);
 }
 
 function animateProjectsSlides(swiper, fromIndex, toIndex, isInitial = false) {
@@ -360,11 +328,9 @@ function initProjectsCarousel() {
 
   const nextEl =
     carousel.querySelector('[data-projects-swiper-next]') ||
-    carousel.querySelector(".swiper-button-next") ||
     document.querySelector('[data-projects-swiper-next]');
   const prevEl =
     carousel.querySelector('[data-projects-swiper-prev]') ||
-    carousel.querySelector(".swiper-button-prev") ||
     document.querySelector('[data-projects-swiper-prev]');
   const paginationEl =
     carousel.querySelector('[data-projects-swiper-pagination]') ||
@@ -376,22 +342,12 @@ function initProjectsCarousel() {
     speed: 1100,
     grabCursor: true,
     autoplay: {
-      delay: 4000,
+      delay: 7000,
       disableOnInteraction: false,
     },
     effect: "fade",
     fadeEffect: {
       crossFade: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'fraction',
-      formatFractionCurrent: (number) => {
-        return number < 10 ? `0${number}` : number;
-      },
-      formatFractionTotal: (number) => {
-        return number < 10 ? `0${number}` : number;
-      },
     },
     virtualTranslate: true,
     followFinger: true,
@@ -402,7 +358,6 @@ function initProjectsCarousel() {
       init(swiper) {
         animateProjectsSlides(swiper, swiper.activeIndex, swiper.activeIndex, true);
         lockProjectsCarouselHeight(swiper);
-        placeProjectsPaginationInActiveDescription(swiper);
       },
       setTranslate(swiper) {
         // On neutralise l'opacité automatique de l'effet fade de Swiper.
@@ -415,11 +370,9 @@ function initProjectsCarousel() {
           ? swiper.previousIndex
           : swiper.activeIndex;
         animateProjectsSlides(swiper, fromIndex, swiper.activeIndex);
-        placeProjectsPaginationInActiveDescription(swiper);
       },
       resize(swiper) {
         lockProjectsCarouselHeight(swiper);
-        placeProjectsPaginationInActiveDescription(swiper);
       },
     },
   };
@@ -434,9 +387,7 @@ function initProjectsCarousel() {
   if (paginationEl) {
     swiperConfig.pagination = {
       el: paginationEl,
-      type: "custom",
-      renderCustom: (swiper, current, total) =>
-        `<span class="swiper-pagination-current">${formatProjectsPaginationNumber(current)}</span><span class="swiper-pagination-separator">/</span><span class="swiper-pagination-total">${formatProjectsPaginationNumber(total)}</span>`,
+      clickable: true,
     };
   }
 
@@ -453,7 +404,6 @@ function initProjectsCarousel() {
 function initHome() {
     initLoader();
     initMoodButton();
-    injectProjectsSwiperPaginationStyles();
     initSwiperLibrary().then(() => {
       initProjectsCarousel();
     });
