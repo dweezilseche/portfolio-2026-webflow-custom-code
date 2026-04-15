@@ -119,15 +119,17 @@ function initSwiperLibrary() {
 }
 
 const PROJECTS_TEXT_SELECTORS = [
-  ".project-type",
+  ".headline-project-description",
   "h2",
   ".home-description-project",
-  ".button",
+  ".home-decription-project",
+  ".button"
 ];
 
 function getProjectSlideParts(slide) {
   const image = slide.querySelector(".img-first-project");
   const description = slide.querySelector(".description-first-project");
+  const button = slide.querySelector(".button");
   const textItems = description
     ? PROJECTS_TEXT_SELECTORS.map((selector) => description.querySelector(selector)).filter(Boolean)
     : [];
@@ -136,7 +138,7 @@ function getProjectSlideParts(slide) {
 }
 
 function applySlideBaseState(slide, isActive) {
-  const { image, description, textItems } = getProjectSlideParts(slide);
+  const { image, description, textItems, button } = getProjectSlideParts(slide);
 
   if (typeof gsap === "undefined") {
     slide.style.opacity = isActive ? "1" : "0";
@@ -176,6 +178,15 @@ function applySlideBaseState(slide, isActive) {
       willChange: "opacity, transform, filter",
     });
   }
+
+  if (button) {
+    gsap.set(button, {
+      autoAlpha: isActive ? 1 : 0,
+      y: isActive ? 0 : 18,
+      filter: isActive ? "blur(0px)" : "blur(6px)",
+      willChange: "opacity, transform, filter",
+    });
+  }
 }
 
 function lockProjectsCarouselHeight(swiper) {
@@ -189,155 +200,125 @@ function lockProjectsCarouselHeight(swiper) {
   }
 }
 
-function animateProjectsSlides(swiper, previousIndex, activeIndex, immediate = false) {
-  const previousSlide = swiper.slides[previousIndex];
-  const activeSlide = swiper.slides[activeIndex];
-  if (!activeSlide) return;
+function animateProjectsSlides(swiper, fromIndex, toIndex, isInitial = false) {
+  const slides = Array.from(swiper?.slides || []);
+  if (!slides.length) return;
 
-  if (immediate || typeof gsap === "undefined") {
-    Array.from(swiper.slides).forEach((slide) => {
-      applySlideBaseState(slide, slide === activeSlide);
+  const nextSlide = slides[toIndex];
+  const previousSlide = slides[fromIndex];
+
+  if (!nextSlide) return;
+
+  // Fallback propre si GSAP n'est pas disponible.
+  if (typeof gsap === "undefined") {
+    slides.forEach((slide, index) => {
+      const isActive = index === toIndex;
+      slide.style.opacity = isActive ? "1" : "0";
+      slide.style.pointerEvents = isActive ? "auto" : "none";
+      slide.style.zIndex = isActive ? "3" : "1";
     });
     return;
   }
 
-  if (swiper.projectsCarouselTl) {
-    swiper.projectsCarouselTl.kill();
-  }
+  slides.forEach((slide, index) => {
+    const isTarget = index === toIndex;
+    gsap.set(slide, {
+      autoAlpha: isTarget ? 1 : 0,
+      pointerEvents: isTarget ? "auto" : "none",
+      zIndex: isTarget ? 2 : 1,
+    });
+  });
 
-  const { image: prevImage, description: prevDescription, textItems: prevItems } = previousSlide
-    ? getProjectSlideParts(previousSlide)
-    : {};
-  const { image: nextImage, description: nextDescription, textItems: nextItems } =
-    getProjectSlideParts(activeSlide);
-
-  if (previousSlide && previousSlide !== activeSlide) {
-    gsap.set(previousSlide, { zIndex: 2, pointerEvents: "none" });
-  }
-  gsap.set(activeSlide, { zIndex: 3, pointerEvents: "auto" });
-
+  const { image: nextImage, textItems: nextTextItems } = getProjectSlideParts(nextSlide);
   if (nextImage) {
     gsap.set(nextImage, {
-      autoAlpha: 0,
-      filter: "blur(6px)",
-      scale: 1.025,
+      clipPath: "inset(0% 0% 0% 0%)",
+      xPercent: 0,
+      willChange: "clip-path, transform",
+    });
+  }
+  if (nextTextItems.length) {
+    gsap.set(nextTextItems, {
+      autoAlpha: 1,
+      y: 0,
+      filter: "blur(0px)",
+      willChange: "transform, opacity, filter",
     });
   }
 
-  if (nextDescription) {
-    gsap.set(nextDescription, {
-      autoAlpha: 0,
-      y: 18,
-      clipPath: "inset(0% 0% 20% 0%)",
-    });
+  if (isInitial || !previousSlide || fromIndex === toIndex) {
+    gsap.set(nextSlide, { autoAlpha: 1, zIndex: 3, pointerEvents: "auto" });
+    return;
   }
 
-  if (nextItems?.length) {
-    gsap.set(nextItems, {
-      autoAlpha: 0,
-      y: 20,
-      filter: "blur(7px)",
-    });
+  const { image: previousImage, textItems: previousTextItems } = getProjectSlideParts(previousSlide);
+
+  gsap.set(previousSlide, {
+    autoAlpha: 1,
+    zIndex: 4,
+    pointerEvents: "none",
+  });
+
+  if (!previousImage) {
+    gsap.set(previousSlide, { autoAlpha: 0, zIndex: 1 });
+    gsap.set(nextSlide, { autoAlpha: 1, zIndex: 3, pointerEvents: "auto" });
+    return;
   }
 
-  const tl = gsap.timeline({
+  gsap.set(previousImage, {
+    clipPath: "inset(0% 0% 0% 0%)",
+    xPercent: 0,
+    willChange: "clip-path, transform",
+  });
+
+  gsap.killTweensOf([...previousTextItems, ...nextTextItems, previousImage]);
+
+  const transitionTl = gsap.timeline({
     defaults: { overwrite: "auto" },
     onComplete: () => {
-      Array.from(swiper.slides).forEach((slide) => {
-        if (slide !== activeSlide) {
-          applySlideBaseState(slide, false);
-        }
-      });
-      applySlideBaseState(activeSlide, true);
+      gsap.set(previousImage, { clipPath: "inset(0% 0% 0% 0%)", xPercent: 0, clearProps: "willChange" });
+      gsap.set([...previousTextItems, ...nextTextItems], { clearProps: "willChange" });
+      gsap.set(previousSlide, { autoAlpha: 0, zIndex: 1 });
+      gsap.set(nextSlide, { autoAlpha: 1, zIndex: 3, pointerEvents: "auto" });
     },
   });
 
-  if (prevImage) {
-    tl.to(
-      prevImage,
-      {
-        autoAlpha: 0,
-        filter: "blur(4px)",
-        scale: 1.015,
-        duration: 0.55,
-        ease: "power2.out",
-      },
-      0
-    );
+  if (previousTextItems.length) {
+    transitionTl.to(previousTextItems, {
+      autoAlpha: 0,
+      y: -14,
+      filter: "blur(6px)",
+      duration: 0.45,
+      ease: "power2.inOut",
+      stagger: 0.04,
+    }, 0);
   }
 
-  if (prevItems?.length) {
-    tl.to(
-      prevItems,
-      {
-        autoAlpha: 0,
-        y: -10,
-        filter: "blur(6px)",
-        duration: 0.35,
-        stagger: 0.03,
-        ease: "power2.out",
-      },
-      0
-    );
+  if (nextTextItems.length) {
+    transitionTl.set(nextTextItems, {
+      autoAlpha: 0,
+      y: 24,
+      filter: "blur(8px)",
+    }, 0);
   }
 
-  if (prevDescription) {
-    tl.to(
-      prevDescription,
-      {
-        autoAlpha: 0,
-        y: -8,
-        duration: 0.4,
-        ease: "power2.out",
-      },
-      0.06
-    );
-  }
+  transitionTl.to(previousImage, {
+    clipPath: "inset(0% 100% 0% 0%)",
+    xPercent: -8,
+    duration: 1.1,
+    ease: "power3.inOut",
+  }, 0);
 
-  if (nextImage) {
-    tl.to(
-      nextImage,
-      {
-        autoAlpha: 1,
-        filter: "blur(0px)",
-        scale: 1,
-        duration: 0.82,
-        ease: "power3.out",
-      },
-      0.16
-    );
+  if (nextTextItems.length) {
+    transitionTl.to(nextTextItems, {
+      autoAlpha: 1,
+      y: 0,
+      filter: "blur(0px)",
+      duration: 0.65,
+      ease: "power3.out",
+      stagger: 0.06,
+    }, 0.28);
   }
-
-  if (nextDescription) {
-    tl.to(
-      nextDescription,
-      {
-        autoAlpha: 1,
-        y: 0,
-        clipPath: "inset(0% 0% 0% 0%)",
-        duration: 0.72,
-        ease: "power3.out",
-      },
-      0.2
-    );
-  }
-
-  if (nextItems?.length) {
-    tl.to(
-      nextItems,
-      {
-        autoAlpha: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 0.58,
-        stagger: 0.06,
-        ease: "power3.out",
-      },
-      0.26
-    );
-  }
-
-  swiper.projectsCarouselTl = tl;
 }
 
 function initProjectsCarousel() {
@@ -355,19 +336,18 @@ function initProjectsCarousel() {
     carousel.querySelector('[data-projects-swiper-pagination]') ||
     document.querySelector('[data-projects-swiper-pagination]');
 
-  let previousIndex = 0;
   const swiperConfig = {
     slidesPerView: 1,
     spaceBetween: 0,
-    speed: 1600,
+    speed: 1100,
     grabCursor: true,
-    effect: "fade",
     autoplay: {
       delay: 7000,
       disableOnInteraction: false,
     },
+    effect: "fade",
     fadeEffect: {
-      crossFade: true,
+      crossFade: false,
     },
     virtualTranslate: true,
     followFinger: true,
@@ -376,15 +356,20 @@ function initProjectsCarousel() {
     watchOverflow: true,
     on: {
       init(swiper) {
-        previousIndex = swiper.activeIndex;
         animateProjectsSlides(swiper, swiper.activeIndex, swiper.activeIndex, true);
         lockProjectsCarouselHeight(swiper);
       },
-      slideChangeTransitionStart(swiper) {
-        animateProjectsSlides(swiper, previousIndex, swiper.activeIndex);
+      setTranslate(swiper) {
+        // On neutralise l'opacité automatique de l'effet fade de Swiper.
+        swiper.slides.forEach((slide) => {
+          slide.style.opacity = "1";
+        });
       },
-      slideChangeTransitionEnd(swiper) {
-        previousIndex = swiper.activeIndex;
+      slideChangeTransitionStart(swiper) {
+        const fromIndex = Number.isInteger(swiper.previousIndex)
+          ? swiper.previousIndex
+          : swiper.activeIndex;
+        animateProjectsSlides(swiper, fromIndex, swiper.activeIndex);
       },
       resize(swiper) {
         lockProjectsCarouselHeight(swiper);
