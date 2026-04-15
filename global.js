@@ -1,3 +1,38 @@
+function documentLayoutHeight() {
+    return Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        window.innerHeight
+    );
+}
+
+function ensureCursorCloneRoot() {
+    let root = document.getElementById("custom-cursor-clones");
+    if (root) return root;
+
+    root = document.createElement("div");
+    root.id = "custom-cursor-clones";
+    root.setAttribute("aria-hidden", "true");
+    Object.assign(root.style, {
+        position: "absolute",
+        left: "0",
+        top: "0",
+        width: "100%",
+        pointerEvents: "none",
+        zIndex: "9998",
+    });
+
+    const syncHeight = () => {
+        root.style.minHeight = `${documentLayoutHeight()}px`;
+    };
+
+    document.body.appendChild(root);
+    syncHeight();
+    window.addEventListener("resize", syncHeight);
+
+    return root;
+}
+
 function initLenis() {
     if (typeof Lenis === "undefined") return;
   
@@ -5,10 +40,6 @@ function initLenis() {
       duration: 1.3,
       easing: (t) => 1 - Math.pow(1 - t, 4),
     });
-
-    if (typeof ScrollTrigger !== "undefined") {
-      lenis.on("scroll", ScrollTrigger.update);
-    }
   
     function raf(time) {
       lenis.raf(time);
@@ -67,17 +98,31 @@ document.addEventListener("mousemove", (e) => {
     }
 });
 
-document.addEventListener("click", () => {
-    const elementUnderCursor = document.elementFromPoint(cursorPosition.x, cursorPosition.y);
+document.addEventListener("click", (e) => {
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    const elementUnderCursor = document.elementFromPoint(clientX, clientY);
 
     if (elementUnderCursor && elementUnderCursor.classList.contains("toggle-color")) {
     return;
     }
 
+    const pageX = e.pageX ?? clientX + (window.scrollX ?? window.pageXOffset);
+    const pageY = e.pageY ?? clientY + (window.scrollY ?? window.pageYOffset);
+
+    const cloneRoot = ensureCursorCloneRoot();
+    cloneRoot.style.minHeight = `${documentLayoutHeight()}px`;
+
+    const rootRect = cloneRoot.getBoundingClientRect();
+    const scrollX = window.scrollX ?? window.pageXOffset;
+    const scrollY = window.scrollY ?? window.pageYOffset;
+    const rootDocX = rootRect.left + scrollX;
+    const rootDocY = rootRect.top + scrollY;
+
     const clone = cursor.cloneNode(true);
     clone.style.position = "absolute";
-    clone.style.left = `${cursorPosition.x}px`;
-    clone.style.top = `${cursorPosition.y}px`;
+    clone.style.left = `${pageX - rootDocX}px`;
+    clone.style.top = `${pageY - rootDocY}px`;
     clone.style.pointerEvents = "none";
     clone.style.transition = "none";
     clone.style.zIndex = "9999";
@@ -85,7 +130,7 @@ document.addEventListener("click", () => {
     clone.dataset.cloneIndex = cloneIndex;
     cloneIndex++;
 
-    document.body.appendChild(clone);
+    cloneRoot.appendChild(clone);
 
     if (cloneIndex === 1) {
     setTimeout(() => {
