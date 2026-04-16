@@ -1,73 +1,72 @@
 function initLoader() {
-    if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
+  if (typeof gsap === "undefined" || typeof CustomEase === "undefined") return;
 
-    gsap.registerPlugin(CustomEase);
+  gsap.registerPlugin(CustomEase);
 
-    const loader = document.querySelector(".loader");
-    const loaderNumber = document.querySelector(".loader_number");
+  const loader = document.querySelector(".loader");
+  const loaderNumber = document.querySelector(".loader_number");
 
-    if (!loader || !loaderNumber) return;
+  if (!loader || !loaderNumber) return;
 
-    const customEase = "M0,0 C0.19,0.92 0.75,0.33 1,1";
-    const counter = { value: 0 };
-    const loaderDuration = 4.7;
-  
-    function updateLoaderText() {
-      const progress = Math.round(counter.value);
-      loaderNumber.textContent = `${progress}%`;
-    }
-  
-    function endLoaderAnimation() {
-      gsap.to(loader, {
-        opacity: 0,
-        duration: 0.6,
-        pointerEvents: "none",
-        onComplete: () => {
-          loader.style.display = "none";
-        }
-      });
-    }
-  
-    const tl = gsap.timeline({
-      onComplete: endLoaderAnimation,
+  const customEase = "M0,0 C0.19,0.92 0.75,0.33 1,1";
+  const counter = { value: 0 };
+  const loaderDuration = 4.7;
+
+  function updateLoaderText() {
+    const progress = Math.round(counter.value);
+    loaderNumber.textContent = `${progress}%`;
+  }
+
+  function endLoaderAnimation() {
+    gsap.to(loader, {
+      opacity: 0,
+      duration: 0.6,
+      pointerEvents: "none",
+      onComplete: () => {
+        loader.style.display = "none";
+      }
     });
-  
-    tl.to(counter, {
-      value: 100,
-      onUpdate: updateLoaderText,
-      duration: loaderDuration,
-      ease: CustomEase.create("custom", customEase),
-    });
+  }
 
+  const tl = gsap.timeline({
+    onComplete: endLoaderAnimation,
+  });
+
+  tl.to(counter, {
+    value: 100,
+    onUpdate: updateLoaderText,
+    duration: loaderDuration,
+    ease: CustomEase.create("custom", customEase),
+  });
 }
-  
-function initMoodButton() {
-const button = document.querySelector(".mood-button");
-if (!button) return;
 
-const moods = [
+function initMoodButton() {
+  const button = document.querySelector(".mood-button");
+  if (!button) return;
+
+  const moods = [
     { mood: "mood1", "--color-primary": "#EFFF53", "--color-secondary": "#4F4C2B", "--color-third": "#464322" },
     { mood: "mood2", "--color-primary": "#FAE192", "--color-secondary": "#AD5B4F", "--color-third": "#CA786C" },
     { mood: "mood3", "--color-primary": "#2D69F6", "--color-secondary": "#161D2D", "--color-third": "#090E1B" },
     { mood: "mood4", "--color-primary": "#F5BFD2", "--color-secondary": "#336148", "--color-third": "#27513A" },
     { mood: "mood5", "--color-primary": "#DEFE52", "--color-secondary": "#272727", "--color-third": "#181717" },
     { mood: "mood6", "--color-primary": "#222222", "--color-secondary": "#f1f2ec", "--color-third": "#fcfcfc" },
-];
+  ];
 
-let currentMood = 0;
+  let currentMood = 0;
 
-button.addEventListener("click", () => {
+  button.addEventListener("click", () => {
     currentMood = (currentMood + 1) % moods.length;
     const mood = moods[currentMood];
 
     Object.entries(mood).forEach(([key, value]) => {
-    if (key.startsWith("--color-")) {
+      if (key.startsWith("--color-")) {
         document.documentElement.style.setProperty(key, value);
-    }
+      }
     });
 
     document.body.setAttribute("data-mood", mood.mood);
-});
+  });
 }
 
 function loadExternalAsset(tagName, attributes) {
@@ -109,7 +108,7 @@ function injectProjectsSwiperPaginationStyles() {
   style.textContent = `
     [data-projects-swiper] .swiper-pagination {
       position: static;
-      margin-top: auto!important;
+      margin-top: auto !important;
       text-align: left;
       font-style: normal;
     }
@@ -144,14 +143,14 @@ const PROJECTS_TEXT_SELECTORS = [
 ];
 
 function getProjectSlideParts(slide) {
-  const image = slide.querySelector(".img-first-project");
+  const image = slide.querySelector(".img-project-home");
   const description = slide.querySelector(".description-first-project");
   const button = slide.querySelector(".button");
   const textItems = description
     ? PROJECTS_TEXT_SELECTORS.map((selector) => description.querySelector(selector)).filter(Boolean)
     : [];
 
-  return { image, description, textItems };
+  return { image, description, textItems, button };
 }
 
 function applySlideBaseState(slide, isActive) {
@@ -241,7 +240,6 @@ function animateProjectsSlides(swiper, fromIndex, toIndex, isInitial = false) {
 
   if (!nextSlide) return;
 
-  // Fallback propre si GSAP n'est pas disponible.
   if (typeof gsap === "undefined") {
     slides.forEach((slide, index) => {
       const isActive = index === toIndex;
@@ -354,21 +352,23 @@ function animateProjectsSlides(swiper, fromIndex, toIndex, isInitial = false) {
 }
 
 function initProjectsCarousel() {
-  const carousel = document.querySelector('[data-projects-swiper]');
+  const carousel = document.querySelector("[data-projects-swiper]");
   if (!carousel || carousel.dataset.enhanced === "true") return;
   if (typeof Swiper === "undefined") return;
 
   const nextEl =
-    carousel.querySelector('[data-projects-swiper-next]') ||
+    carousel.querySelector("[data-projects-swiper-next]") ||
     carousel.querySelector(".swiper-button-next") ||
-    document.querySelector('[data-projects-swiper-next]');
+    document.querySelector("[data-projects-swiper-next]");
+
   const prevEl =
-    carousel.querySelector('[data-projects-swiper-prev]') ||
+    carousel.querySelector("[data-projects-swiper-prev]") ||
     carousel.querySelector(".swiper-button-prev") ||
-    document.querySelector('[data-projects-swiper-prev]');
+    document.querySelector("[data-projects-swiper-prev]");
+
   const paginationEl =
-    carousel.querySelector('[data-projects-swiper-pagination]') ||
-    document.querySelector('[data-projects-swiper-pagination]');
+    carousel.querySelector("[data-projects-swiper-pagination]") ||
+    document.querySelector("[data-projects-swiper-pagination]");
 
   const swiperConfig = {
     slidesPerView: 1,
@@ -384,8 +384,8 @@ function initProjectsCarousel() {
       crossFade: false,
     },
     pagination: {
-      el: '.swiper-pagination',
-      type: 'fraction',
+      el: ".swiper-pagination",
+      type: "fraction",
       formatFractionCurrent: (number) => {
         return number < 10 ? `0${number}` : number;
       },
@@ -405,7 +405,6 @@ function initProjectsCarousel() {
         placeProjectsPaginationInActiveDescription(swiper);
       },
       setTranslate(swiper) {
-        // On neutralise l'opacité automatique de l'effet fade de Swiper.
         swiper.slides.forEach((slide) => {
           slide.style.opacity = "1";
         });
@@ -414,6 +413,7 @@ function initProjectsCarousel() {
         const fromIndex = Number.isInteger(swiper.previousIndex)
           ? swiper.previousIndex
           : swiper.activeIndex;
+
         animateProjectsSlides(swiper, fromIndex, swiper.activeIndex);
         placeProjectsPaginationInActiveDescription(swiper);
       },
@@ -449,18 +449,95 @@ function initProjectsCarousel() {
   carousel.dataset.enhanced = "true";
 }
 
-  
-function initHome() {
-    initLoader();
-    initMoodButton();
-    injectProjectsSwiperPaginationStyles();
-    initSwiperLibrary().then(() => {
-      initProjectsCarousel();
+function initWordsOpacityScroll() {
+  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const words = document.querySelectorAll(".word-item");
+  if (!words.length) return;
+
+  words.forEach((word) => {
+    const wordImage = word.querySelector(".img_word_container");
+    const wordText = word.querySelector(".word-item-description");
+
+    // Pour que le z-index ait un effet, l'élément doit être "positionné".
+    if (getComputedStyle(word).position === "static") {
+      word.style.position = "relative";
+    }
+
+    gsap.set(word, {
+      opacity: 0.2,
+      willChange: "opacity",
     });
-  }
-  
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initHome);
-  } else {
-    initHome();
-  }
+
+    if (wordImage) {
+      gsap.set(wordImage, {
+        opacity: 0,
+        willChange: "opacity",
+      });
+    }
+
+    if (wordText) {
+      gsap.set(wordText, {
+        opacity: 0,
+        willChange: "opacity",
+      });
+    }
+
+    ScrollTrigger.create({
+      trigger: word,
+      // markers: true,
+      start: "top 55%",
+      end: "bottom 54%",
+      onToggle: (self) => {
+        const targetOpacity = self.isActive ? 1 : 0.2;
+
+        // Quand le mot est actif, on le met au-dessus des autres.
+        gsap.set(word, { zIndex: self.isActive ? 5 : 1 });
+
+        gsap.to(word, {
+          opacity: targetOpacity,
+          duration: 0.2,
+          ease: "power1.out",
+          overwrite: "auto",
+        });
+
+        if (!wordImage) return;
+
+        gsap.to(wordImage, {
+          opacity: self.isActive ? 1 : 0,
+          duration: 0.2,
+          ease: "power1.in",
+          overwrite: "auto",
+        });
+
+        if (!wordText) return;
+
+        gsap.to(wordText, {
+          opacity: self.isActive ? 1 : 0,
+          duration: 0.2,
+          ease: "power1.in",
+          overwrite: "auto",
+        });
+      },
+    });
+  });
+}
+
+function initHome() {
+  initLoader();
+  initMoodButton();
+  injectProjectsSwiperPaginationStyles();
+  initWordsOpacityScroll();
+
+  initSwiperLibrary().then(() => {
+    initProjectsCarousel();
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initHome);
+} else {
+  initHome();
+}
