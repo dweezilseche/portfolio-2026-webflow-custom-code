@@ -525,11 +525,92 @@ function initWordsOpacityScroll() {
   });
 }
 
+function initAllProjectsSelector() {
+  const allProjectsBlocks = document.querySelectorAll(".all-projects");
+  if (!allProjectsBlocks.length) return;
+
+  allProjectsBlocks.forEach((block) => {
+    // Le container qui contient la ligne de sélection et la liste de projets.
+    const listContainer = block.querySelector(".div-block-4");
+    const selector = block.querySelector(".selector");
+    const items = Array.from(block.querySelectorAll(".project-all-project"));
+
+    if (!listContainer || !selector || !items.length) return;
+    if (block.dataset.selectorEnhanced === "true") return;
+
+    const rowHeight = 52;
+    const startIndex = 0;
+
+    const setSelectorVisibility = (isVisible, animate = true) => {
+      if (typeof gsap === "undefined" || !animate) {
+        selector.style.opacity = isVisible ? "1" : "0";
+        return;
+      }
+
+      gsap.to(selector, {
+        autoAlpha: isVisible ? 1 : 0,
+        duration: 0.2,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    };
+
+    // On utilise transform plutôt que top pour une animation plus fluide.
+    const setSelectorPosition = (index, animate = true) => {
+      const safeIndex = Math.max(0, Math.min(index, items.length - 1));
+      const targetY = safeIndex * rowHeight;
+
+      if (typeof gsap === "undefined" || !animate) {
+        selector.style.transform = `translateY(${targetY}px)`;
+        return;
+      }
+
+      gsap.to(selector, {
+        y: targetY,
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+    };
+
+    // État initial pour éviter tout flash visuel.
+    selector.style.willChange = "transform, opacity";
+    if (typeof gsap === "undefined") {
+      selector.style.transform = `translateY(${startIndex * rowHeight}px)`;
+      selector.style.opacity = "0";
+    } else {
+      gsap.set(selector, { y: startIndex * rowHeight, autoAlpha: 0 });
+    }
+
+    items.forEach((item, index) => {
+      // Le hover déplace le selector sur la ligne active.
+      item.addEventListener("mouseenter", () => {
+        setSelectorVisibility(true, true);
+        setSelectorPosition(index, true);
+      });
+
+      // Le focus clavier garde un comportement accessible.
+      item.addEventListener("focusin", () => {
+        setSelectorVisibility(true, true);
+        setSelectorPosition(index, true);
+      });
+    });
+
+    // Quand la souris sort de la liste, on cache le selector.
+    listContainer.addEventListener("mouseleave", () => {
+      setSelectorVisibility(false, true);
+    });
+
+    block.dataset.selectorEnhanced = "true";
+  });
+}
+
 function initHome() {
   initLoader();
   initMoodButton();
   injectProjectsSwiperPaginationStyles();
   initWordsOpacityScroll();
+  initAllProjectsSelector();
 
   initSwiperLibrary().then(() => {
     initProjectsCarousel();
